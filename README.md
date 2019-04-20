@@ -1,0 +1,1 @@
+Program for generate anki cards
