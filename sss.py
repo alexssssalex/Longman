@@ -53,6 +53,9 @@ class Dict:
         return nm
 
     def get_entry(self, word: str) -> BeautifulSoup:
+        """
+        get entry for word
+        """
         url = 'https://www.ldoceonline.com/dictionary/'+word
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36(KHTML, like Gecko) Chrome/41.0.2272.0 Safari/537.36'}
         data = requests.get(url, headers=headers)
@@ -60,13 +63,19 @@ class Dict:
         return soup.find("div", {"class": "entry_content"})
 
     def get_str_entry(self, data):
+        """
+        get meaning word
+        """
         rec = '<span class="ldoceEntry Entry">'
         for d in data:
             rec += str(d)
         rec += '</span>'
-        return rec.replace(DELIMETER,' ')
+        return rec.replace(DELIMETER, ' ')
 
     def get_str_sound(self, data):
+        """
+        made sound string
+        """
         rec = ''
         for d in data:
             rec +='[sound:' + d + ']'
