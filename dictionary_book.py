@@ -1,9 +1,5 @@
 
-FILE_KNOWN = './data_base/words_known.txt'
-
-DIR_BOOK = './input_data/sources'
-OUT_BOOK = './input_data/words_new.txt'
-step = 10000
+from config import FILE_KNOWN, DIR_BOOK, OUT_BOOK, step, FILE_ADDED
 import os
 
 import nltk
@@ -29,6 +25,7 @@ for book in books:
         data[tag].extend(s)
 
 all_words = read_arrange(FILE_KNOWN)
+all_words.update(read_arrange(FILE_ADDED))
 
 for tag in data:
     lem[tag] = list()

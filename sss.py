@@ -1,20 +1,12 @@
-
 import os
 from auxulary.auxilary import read_arrange
 from Longman import Longman
 
-FOLDER_MEDIA = './media/'
-
-
-FILE_LOG = './output_data/log.txt'
-FILE_INPUT = './input_data/words_new.txt'
-FILE_ADDED = './data_base/words_in_study.txt'
-FILE_RECORD = './output_data/record.txt'
-
-FILE_ALL_DATA = './data_base/words_known.txt'
+from config import FOLDER_MEDIA, FILE_LOG, FILE_INPUT, FILE_ADDED, FILE_RECORD, FILE_ALL_DATA
 
 
 old = read_arrange(FILE_ALL_DATA)
+old.update(read_arrange(FILE_ADDED))
 new = read_arrange(FILE_INPUT)
 new = new - old
 

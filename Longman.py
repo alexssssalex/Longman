@@ -5,8 +5,7 @@ from bs4 import BeautifulSoup
 import requests
 import re
 
-
-DELIMETER  = '|'
+from config import DELIMETER
 
 
 class Longman:
@@ -45,7 +44,7 @@ class Longman:
             try:
                 wget.download(url, nm_path)
             except:
-                self.write_log(nm + 'is not downloaded\n')
+                self.write_log(nm + ' is not downloaded\n')
                 nm = ''
         return nm
 
