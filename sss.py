@@ -7,7 +7,7 @@ import re
 
 FOLDER_MEDIA = './media/'
 FILE_LOG = 'log.txt'
-FILE_INPUT = 'word_input.txt'
+FILE_INPUT = './input_data/words_new.txt'
 FILE_ADDED = 'word_added.txt'
 FILE_RECORD = 'record.txt'
 

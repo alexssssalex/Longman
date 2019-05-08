@@ -1,9 +1,9 @@
 
-FILE_BOOK = '1.txt'
+FILE_KNOWN = './data_base/words_known.txt'
 
-DIR_BOOK = './input_data/book'
-OUT_BOOK = './output_data/words_count.txt'
-step = 5000
+DIR_BOOK = './input_data/sources'
+OUT_BOOK = './input_data/words_new.txt'
+step = 10000
 import os
 
 import nltk
@@ -11,45 +11,45 @@ from collections import Counter
 import spacy
 from nltk.corpus import words
 
-WORDS = set(words.words())
+from auxulary.auxilary import made_tag, check, read_arrange
 
-def check(token):
-    return not token.is_stop and \
-           not token.is_punct and \
-           token.lemma_.isalpha() and \
-           token.lemma_ in WORDS and \
-           len(token.lemma_) > 1
-
-nltk.download('words')
 nlp = spacy.load('en', disable=['parser', 'ner'])
+
+
 books = [os.path.join(DIR_BOOK, f) for f in os.listdir(DIR_BOOK) if os.path.isfile(os.path.join(DIR_BOOK, f))]
 
-lem = list()
-sss = list()
+lem = dict()        # list lemm
+data = dict()       # list words
 for book in books:
-    f=open(book, encoding='utf-8')
-    s = f.read()
-    s = s.lower()
-    s = s.replace('\r',' ').replace('\n',' ').split()
-    s = list(filter(lambda x: all([ord(c) < 128 for c in x]), s))
-    sss.extend(s)
-    f.close()
-chunks = [sss[x:x + step] for x in range(0, len(sss), step)]
-print('Number chunks: ', len(chunks))
-print('Process chunk #: ')
-for i, s in enumerate(chunks):
-    s = ' '.join(s)
-    if i%20 != 0:
-        print(i, end=':')
-    else:
-        print(i)
-    doc = nlp(s)
-    lem.extend([token.lemma_ for token in doc if check(token)])
-# wor = Counter(lem)
-# wor_ = [(v,k) for k,v in wor.items()]
-wor = list(set(lem))
-wor.sort()
-f = open(OUT_BOOK,'w')
-for v in wor:
-    f.write(str(v)+'\n')
-f.close()
+    tag = made_tag(book)
+    data[tag] = list()
+    with open(book, encoding='utf-8') as f:
+        s = f.read().lower().split()
+        s = list(filter(lambda x: all([ord(c) < 128 for c in x]), s))
+        data[tag].extend(s)
+
+all_words = read_arrange(FILE_KNOWN)
+
+for tag in data:
+    lem[tag] = list()
+    chunks = [data[tag][x:x + step] for x in range(0, len(data[tag]), step)]
+    print('Process source: ', tag)
+    print('Number chunks:   ', len(chunks))
+    print('_process chunk #: ')
+    for i, s in enumerate(chunks):
+        s = ' '.join(s)
+        if i%20 != 0:
+            print(i, end=':')
+        else:
+            print(i)
+        doc = nlp(s)
+        lem[tag].extend([token.lemma_ for token in doc if check(token, all_words)])
+    all_words.update(lem[tag])
+
+
+with open(OUT_BOOK, 'w') as f:
+    for tag in lem:
+        wor = Counter(lem[tag])
+        wor = sorted([(k, v, tag) for k, v in wor.items()], key=lambda x: x[1], reverse=True)
+        for v in wor:
+            f.write(str(v[0])+'\n')
