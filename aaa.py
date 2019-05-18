@@ -1,52 +1,61 @@
-import os
-from urllib.parse import urlparse
-import wget
 from bs4 import BeautifulSoup
 import requests
+import wget
+import os
+from urllib.parse import urlparse
 import re
-from Base import Base
 
-from config import DELIMETER, FILE_REL_LOG, FILE_REL_RECORD, FOLDER_REL_MEDIA, WORDS_IN_STUDY
+FOLDER_MEDIA = './media/'
+FILE_LOG = 'log.txt'
+FILE_INPUT = 'word_input.txt'
+FILE_ADDED = 'word_added.txt'
+FILE_RECORD = 'record.txt'
+
+FILE_ALL_DATA = './data/words.txt'
+DELIMETER  = '|'
 
 
-class Longman:
+class Dict:
 
     def __init__(self):
         """
         file - name file for records
         """
-        self.folder_media = FOLDER_REL_MEDIA
-        self.file_log = FILE_REL_LOG
-        self.file_record = FILE_REL_RECORD
-        self.base = Base()
-
-        # <editor-fold desc="Delete previous files">
-        for d in [self.file_log, self.file_record]:
+        self.old = self.old_entry()
+        for d in [FILE_LOG, FILE_RECORD, FILE_ADDED]:
             f = open(d, mode="w", encoding="utf-8")
             f.close()
-        # </editor-fold>
 
-    def add_record_to_file(self, file, data, print_data=False):
-        """
-        Method add new record to file
-        """
-        with open(file, mode='a', encoding="utf-8") as f:
-            if print_data:
-                print(data)
-            f.write(data)
+    def old_entry(self):
+        f = open(FILE_ALL_DATA, 'r')
+        old = f.readlines()
+        f.close()
+
+        old = list(filter(None, set([x.strip() for x in old])))
+        old.sort()
+
+        f = open(FILE_ALL_DATA, 'w')
+        f.writelines(map(lambda x: x + '\n', old))
+        f.close()
+        return set(old)
+
+    def write_new(self, data):
+        f = open(FILE_ADDED, mode='a', encoding="utf-8")
+        f.write(data + '\n')
+        print(data)
+        f.close()
 
 
     def write_log(self, data):
-        f = open(self.file_log, mode='a', encoding="utf-8")
+        f = open(FILE_LOG, mode='a', encoding="utf-8")
         f.write(data)
         print(data)
         f.close()
 
     def write_rec(self, data):
-        f = open(self.file_record, mode='a', encoding="utf-8")
+        f = open(FILE_RECORD, mode='a', encoding="utf-8")
         f.write(data)
         f.close()
-
 
     def get_mp3(self, url: str) -> str:
         """
@@ -54,19 +63,16 @@ class Longman:
         return name file
         """
         nm = os.path.basename(urlparse(url).path)
-        nm_path = self.folder_media +nm
+        nm_path = FOLDER_MEDIA+nm
         if not os.path.isfile(nm_path):
             try:
                 wget.download(url, nm_path)
             except:
-                self.write_log(nm + ' is not downloaded\n')
+                self.write_log(nm + 'is not downloaded\n')
                 nm = ''
         return nm
 
     def get_entry(self, word: str) -> BeautifulSoup:
-        """
-        get entry for word
-        """
         url = 'https://www.ldoceonline.com/dictionary/'+word
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36(KHTML, like Gecko) Chrome/41.0.2272.0 Safari/537.36'}
         data = requests.get(url, headers=headers)
@@ -74,58 +80,47 @@ class Longman:
         return soup.find("div", {"class": "entry_content"})
 
     def get_str_entry(self, data):
-        """
-        get meaning word
-        """
         rec = '<span class="ldoceEntry Entry">'
         for d in data:
             rec += str(d)
         rec += '</span>'
-        return rec.replace(DELIMETER, ' ')
+        return rec.replace(DELIMETER,' ')
 
     def get_str_sound(self, data):
-        """
-        made sound string
-        """
         rec = ''
         for d in data:
             rec +='[sound:' + d + ']'
         return rec
 
-    def get_records(self, word):
-        """
-        Method get list of words related to word
-        """
-        words = list()
-        words.append(word)
-        entry = self.get_entry(word)
-        if self.get_entry(word):
-            # find reference
-            for w in entry.find_all("span", {"class": "ldoceEntry Entry"}):
-                for w1 in w.find_all("span", {"class": "Sense"}):
-                    for w2 in w1.find_all("span", {'class': "Crossref"}):
-                        for w3 in w2.find_all("a", {'class': "crossRef"}):
-                            add_word = w3['href'].split('/')[-1]
-                            words.append(add_word)
-        return words
-
     def add_record(self, word):
-        for w in self.get_records(word):
-            if w not in self.base:
-                if self.record(w, word):
-                    self.base.update(w)
+        if word not in self.old_entry():
+            res = list()
+            res.append(word)
+            entry = self.get_entry(word)
+            if entry:
+                for w in entry.find_all("span", {"class": "ldoceEntry Entry"}):
+                    for w1 in w.find_all("span", {"class": "Sense"}):
+                        for w2 in w1.find_all("span", {'class': "Crossref"}):
+                            for w3 in w2.find_all("a", {'class': "crossRef"}):
+                                res.append(w3['href'].split('/')[-1])
+                for w in res:
+                    self.record(w)
             else:
-                print('---*',word,'*---already in library:',w)
+                self.write_log(str(word) + ' - unknown in Longman\n')
 
-    def record(self, word, tag):
+
+    def record(self, word):
+        if word in self.old:
+            return None
+        res = list()
         headlines = list()
         examples = list()
         tesarusus = list()
         entries = list()
         sounds = list()
         entry = self.get_entry(word)
-        res = False
         if entry is not None:
+            word_raw = word
 
             # <editor-fold desc="Make entries. Delete java">
             for div in entry.find_all("script", {"type": "text/javascript"}):
@@ -133,8 +128,14 @@ class Longman:
             entries.append(str(entry).replace('\r', '').replace('\n', ''))
             # </editor-fold>
 
+            #find reference
+            for w in entry.find_all("span", {"class": "ldoceEntry Entry"}):
+                for w1 in w.find_all("span", {"class": "Sense"}):
+                    for w2 in w1.find_all("span", {'class':"Crossref"}):
+                        for w3 in w2.find_all("a", {'class': "crossRef"}):
+                            res.append(w3['href'].split('/')[-1])
+
             word = entry.find("h1", {"class": "pagetitle"}).text
-            print(word)
 
             # <editor-fold desc="Thesarusus">
             for div in entry.find_all("span", {"class": "ThesBox"}):
@@ -159,16 +160,32 @@ class Longman:
                             y.decompose()
                 headlines.append(str(div).replace('\r', '').replace('\n', '')+'<br>')
             # </editor-fold>
-
             rec = word + DELIMETER + self.get_str_sound(sounds)
-
             for x in [headlines, entries, tesarusus, examples]:
                 rec = rec + DELIMETER +self.get_str_entry(x)
-            rec = rec + DELIMETER + tag + '\n'
-            # self.write_rec(rec)
-            self.add_record_to_file(self.file_record, rec)
-            res = True
-        else:
-            self.add_record_to_file(self.file_log, word + ' - unknown in Longman\n', print_data=True)
-            res = False
+            rec += '\n'
+            self.write_rec(rec)
+            self.write_new(word_raw)
+            self.old.add(word_raw)
         return res
+
+f = open(FILE_ALL_DATA, 'r')
+old = f.readlines()
+f.close()
+
+f = open(FILE_INPUT, 'r')
+new = f.readlines()
+new = list(filter(None, set([x.strip() for x in new])))
+f.close()
+
+old = list(filter(None, set([x.strip() for x in old])))
+old.sort()
+
+# f = open(FILE_ALL_DATA, 'w')
+# f.writelines(map(lambda x: x +'\n', old))
+# f.close()
+
+d = Dict()
+for w in new:
+    d.add_record(w)
+

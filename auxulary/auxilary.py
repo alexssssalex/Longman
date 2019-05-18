@@ -6,7 +6,7 @@ nltk.download('words')
 WORDS = set(words.words())
 
 
-def check(token, all_word):
+def check(token):
     """
     - take token;
     - check if we need add this token to words serch;
@@ -17,8 +17,7 @@ def check(token, all_word):
         not token.is_punct and \
         token.lemma_.isalpha() and \
         token.lemma_ in WORDS and \
-        len(token.lemma_) > 1 and \
-        token.lemma_ not in all_word
+        len(token.lemma_) > 1
 
 
 def made_tag(path):
@@ -31,21 +30,26 @@ def made_tag(path):
     return ''.join(map(lambda x: x if x.isalpha() else '_', os.path.basename(path).rsplit('.', 1)[0]))
 
 
-def read_arrange(path):
+def read_arrange(path: str) -> list:
     """
     - read file by path;
-    - arrange word in file;
     - filter empty lines;
-    - made set of word;
-    - arrange set and save word in the same file;
-    - return set;
+    - made unique list;
+    - return unique list of words (in order in input file);
+    - arrange list set and save word in the same file in alphabet order;
     """
+    word_set = set()
+    word_new = list()
     with open(path, 'r') as f:
-        word = [w.split(':')[0].strip() for w in f.readlines()]
-    word = set(filter(lambda x: len(x) > 0, word))
+        data = [w.split(':')[0].strip() for w in f.readlines()]
+    data = list(filter(lambda x: len(x) > 0, data))
+    for w in data:
+        if w not in word_set:
+            word_new.append(w)
+            word_set.add([w])
     with open(path, 'w') as f:
-        words_ = list(word)
-        words_.sort()
-        f.writelines([w+'\n' for w in words_])
-    return word
+        word_new_ = list(word_set)
+        word_new_.sort()
+        f.writelines([w+'\n' for w in word_new_])
+    return word_new
 
