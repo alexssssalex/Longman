@@ -1,8 +1,21 @@
 
-# Project to generate cards for program Anki
-This program help to generate cards for ANKI base on Longman dictionary
+# Generator cards for Anki
+## Note
+* help to generate cards for ANKI;
+* use Longman online dictionary;
+* generate cards with field:
+    - word (word used for search);
+    - sound (sound headline);
+    - headline (from Longman);
+    - description;
+    - thesarusus;
+    - example;
+    - ref(base word - word witch use first);
+    - tags;
 
-# Alghoritm work
+# Manual
+1. Set config.py:
+
 1. Add files with new words in folder *./input_data/sources*. Name of file will be used as *source_tag*.
 2. Start *dictionary_book.py*:
 	- program find new words in sources;
