@@ -6,7 +6,7 @@ import requests
 import re
 from Base import Base
 
-from config import DELIMETER, FILE_REL_LOG, FILE_REL_RECORD, FOLDER_REL_MEDIA, WORDS_IN_STUDY
+from config import DELIMETER, FILE_REL_LOG, FILE_REL_RECORD, FOLDER_REL_MEDIA
 
 
 class Longman:
@@ -17,11 +17,10 @@ class Longman:
         """
         self.folder_media = FOLDER_REL_MEDIA
         self.file_log = FILE_REL_LOG
-        self.file_record = FILE_REL_RECORD
         self.base = Base()
 
         # <editor-fold desc="Delete previous files">
-        for d in [self.file_log, self.file_record]:
+        for d in [self.file_log,  FILE_REL_RECORD]:
             f = open(d, mode="w", encoding="utf-8")
             f.close()
         # </editor-fold>
@@ -35,17 +34,16 @@ class Longman:
                 print(data)
             f.write(data)
 
-
     def write_log(self, data):
         f = open(self.file_log, mode='a', encoding="utf-8")
         f.write(data)
         print(data)
         f.close()
 
-    def write_rec(self, data):
-        f = open(self.file_record, mode='a', encoding="utf-8")
-        f.write(data)
-        f.close()
+    # def write_rec(self, data):
+    #     f = open(self.file_record, mode='a', encoding="utf-8")
+    #     f.write(data)
+    #     f.close()
 
 
     def get_mp3(self, url: str) -> str:
@@ -109,15 +107,20 @@ class Longman:
                             words.append(add_word)
         return words
 
-    def add_record(self, word):
-        for w in self.get_records(word):
+    def  add_record(self, word):
+        for i, w in enumerate(self.get_records(word)):
             if w not in self.base:
-                if self.record(w, word):
-                    self.base.update(w)
+                tag1 = word
+                if i == 0:
+                    tag2 = 'main'
+                else:
+                    tag2 = ''
+                self.record(w, tag1,tag2, FILE_REL_RECORD)
+                self.base.update(w)
             else:
-                print('---*',word,'*---already in library:',w)
+                print('---*', word, '*---already in library:', w)
 
-    def record(self, word, tag):
+    def record(self, word, tag1, tag2,file_name):
         headlines = list()
         examples = list()
         tesarusus = list()
@@ -164,9 +167,9 @@ class Longman:
 
             for x in [headlines, entries, tesarusus, examples]:
                 rec = rec + DELIMETER +self.get_str_entry(x)
-            rec = rec + DELIMETER + tag + '\n'
+            rec = rec + DELIMETER + tag1 + DELIMETER + tag2 + '\n'
             # self.write_rec(rec)
-            self.add_record_to_file(self.file_record, rec)
+            self.add_record_to_file(file_name, rec)
             res = True
         else:
             self.add_record_to_file(self.file_log, word + ' - unknown in Longman\n', print_data=True)
