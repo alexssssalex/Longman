@@ -22,11 +22,18 @@
 	- filter them by file *./data_base/words_known.txt*;
 	- put in folder *./input_data/words_new.txt*; 
 3. Check  manually *./input_data/words/words_new.txt* and copy if need known word in *./data_base/words_known.txt*;
-4. Start *sss.py*:
+4. Start *make_record.py*:
 	- program take *./input_data/words/words_new.txt*;
 	- filter by *./data_base/words_known.txt*;
 	- filter by *./data_base/words_in_study.txt*;
 	- add all new word in file *./output_data/record.txt*
 	- add added word in *./data_base/words_in_study.txt*;
+
+# Instalation note
+
+* go to conda envs in **as admine **
+* activate envs
+* run cmd: 
+    * python.exe -m spacy download en
 
 
