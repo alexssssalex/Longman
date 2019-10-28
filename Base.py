@@ -1,4 +1,4 @@
-from config import WORDS_IN_STUDY, WORDS_KNOWN
+from config import WORDS_IN_STUDY, WORDS_KNOWN, WORDS_IN_STUDY_BAK
 
 def read_arrange(path: str) -> set:
     """
@@ -7,6 +7,8 @@ def read_arrange(path: str) -> set:
     - made unique list;
     - arrange list set and save word in the same file in alphabet order;
     """
+
+
     with open(path, 'r') as f:
         data = [w.split(':')[0].strip() for w in f.readlines()]
     word_set = set(filter(lambda x: len(x) > 0, data))
@@ -14,6 +16,8 @@ def read_arrange(path: str) -> set:
         words = list(word_set)
         words.sort()
         f.writelines([w+'\n' for w in words])
+        with open(WORDS_IN_STUDY_BAK, 'w') as f:
+            f.writelines([w+'\n' for w in words])
     return word_set
 
 class Base:

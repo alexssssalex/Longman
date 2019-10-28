@@ -10,6 +10,7 @@ WORDS_KNOWN = os.path.join(FOLDER_DATA, 'data_base/words_known.txt')        # wo
 WORDS_NEW = os.path.join(FOLDER_DATA, 'input_data/words_new.txt')           # words new (will be used to add)
 WORDS_IN_BOOK = os.path.join(FOLDER_DATA, 'input_data/words_new.txt')      # words new from book
 WORDS_IN_STUDY = os.path.join(FOLDER_DATA, 'data_base/words_in_study.txt')  # words in study (filter update )
+WORDS_IN_STUDY_BAK = os.path.join(FOLDER_DATA, 'data_base/words_in_study_bak.txt')
 
 FILE_REL_LOG = os.path.join(FOLDER_DATA, 'output_data/log.txt')             # output log file
 FILE_REL_RECORD = os.path.join(FOLDER_DATA, 'output_data/record.txt')       # output txt file for ANKI

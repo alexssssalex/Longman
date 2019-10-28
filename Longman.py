@@ -61,6 +61,22 @@ class Longman:
                 nm = ''
         return nm
 
+    def get_image(self, url: str) -> str:
+        """
+        url - adress file
+        return name file
+        """
+        nm = os.path.basename(urlparse(url).path)
+        # print('I download image ', nm)
+        nm_path = self.folder_media +nm
+        if not os.path.isfile(nm_path):
+            try:
+                wget.download(url, nm_path)
+            except:
+                self.write_log(nm + ' is not downloaded\n')
+                nm = ''
+        return nm
+
     def get_entry(self, word: str) -> BeautifulSoup:
         """
         get entry for word
@@ -133,6 +149,13 @@ class Longman:
             # <editor-fold desc="Make entries. Delete java">
             for div in entry.find_all("script", {"type": "text/javascript"}):
                 div.decompose()
+
+            for div in entry.find_all("img"):
+                nm = self.get_image(div.attrs['src'])
+                if nm:
+                    div.attrs['src'] = nm
+
+
             entries.append(str(entry).replace('\r', '').replace('\n', ''))
             # </editor-fold>
 
@@ -150,6 +173,9 @@ class Longman:
             # </editor-fold>
 
             # <editor-fold desc="Headlines and Sounds">
+
+
+
             for div in entry.find_all("span", {"class":re.compile(r'(frequent Head|Head)')}):
                 for sound in div.find_all("span", {"data-src-mp3": True}):
                     nm = self.get_mp3(sound.attrs['data-src-mp3'])
